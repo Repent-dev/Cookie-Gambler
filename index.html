@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CookieCause – Click, Payout & Donate</title>
+    <style>
+        :root {
+            --bg-dark: #12151c;
+            --card-bg: #1c212c;
+            --accent: #f59e0b;
+            --accent-hover: #d97706;
+            --green: #10b981;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --secret: #ec4899;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            color: var(--accent);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            background: var(--card-bg);
+            padding: 15px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .stat-box {
+            text-align: center;
+            min-width: 110px;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-box.coins .stat-value { color: #38bdf8; }
+        .stat-box.charity .stat-value { color: var(--green); }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Layout */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        @media (max-width: 820px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 14px;
+            border-bottom: 1px solid #2d3545;
+            padding-bottom: 8px;
+        }
+
+        /* Big Cookie */
+        .cookie-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+        }
+
+        #big-cookie {
+            font-size: 120px;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.08s ease;
+            filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.3));
+        }
+
+        #big-cookie:active {
+            transform: scale(0.9);
+        }
+
+        .cps-info {
+            margin-top: 15px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* Buttons & Upgrades */
+        .btn {
+            width: 100%;
+            padding: 11px 14px;
+            margin-bottom: 9px;
+            border: none;
+            border-radius: 8px;
+            background: #283040;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            text-align: left;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #354054;
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .upgrade-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .upgrade-title {
+            font-weight: 600;
+        }
+
+        .upgrade-sub {
+            font-size: 0.76rem;
+            color: #9ca3af;
+        }
+
+        .upgrade-cost {
+            font-weight: bold;
+            color: #38bdf8;
+            white-space: nowrap;
+            font-size: 0.88rem;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #111;
+            font-weight: bold;
+        }
+
+        .btn-accent:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        .btn-green {
+            background: var(--green);
+            color: #111;
+            font-weight: bold;
+        }
+
+        .btn-green:hover:not(:disabled) {
+            background: #059669;
+        }
+
+        /* Charity Progress */
+        .progress-bg {
+            width: 100%;
+            height: 14px;
+            background: #111620;
+            border-radius: 7px;
+            overflow: hidden;
+            margin: 10px 0 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--green);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* ==========================================
+           GEHEIMER CASINO-TAB (BLACKJACK & 3x3 SLOTS)
+           ========================================== */
+        #secret-gambling-tab {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 450px;
+            max-width: calc(100vw - 24px);
+            background: radial-gradient(circle at top, #183628 0%, #121c18 100%);
+            border: 2px solid var(--secret);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 22px rgba(236, 72, 153, 0.28);
+            z-index: 100;
+            animation: popIn 0.25s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .bj-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .bj-header h3 {
+            font-size: 1.05rem;
+            color: #f9a8d4;
+        }
+
+        .bj-close-btn {
+            background: rgba(255,255,255,0.08);
+            border: none;
+            color: #f3f4f6;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .bj-close-btn:hover {
+            background: rgba(236, 72, 153, 0.35);
+        }
+
+        .casino-mode-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .mode-tab-btn {
+            padding: 7px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.35);
+            color: #cbd5e1;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .mode-tab-btn.active {
+            background: var(--secret);
+            border-color: #f9a8d4;
+            color: #fff;
+        }
+
+        .mode-tab-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .bj-bankroll-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .bj-chips-pill {
+            font-weight: bold;
+            color: #f472b6;
+            font-size: 1rem;
+        }
+
+        .bj-reset-link {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #d1d5db;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .bj-reset-link:hover:not(:disabled) {
+            border-color: #f472b6;
+            color: #fff;
+        }
+
+        .bj-reset-link:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .bj-exchange-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .bj-exchange-btn {
+            padding: 8px 9px;
+            border: 1px solid rgba(56, 189, 248, 0.5);
+            border-radius: 8px;
+            background: rgba(56, 189, 248, 0.14);
+            color: #7dd3fc;
+            font-weight: bold;
+            font-size: 0.76rem;
+            cursor: pointer;
+            text-align: center;
+            line-height: 1.3;
+            transition: background 0.15s;
+        }
+
+        .bj-exchange-btn.to-bj {
+            border-color: rgba(245, 158, 11, 0.55);
+            background: rgba(245, 158, 11, 0.14);
+            color: #fcd34d;
+        }
+
+        .bj-exchange-btn:hover:not(:disabled) {
+            background: rgba(56, 189, 248, 0.28);
+        }
+
+        .bj-exchange-btn.to-bj:hover:not(:disabled) {
+            background: rgba(245, 158, 11, 0.28);
+        }
+
+        .bj-exchange-btn:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+        }
+
+        .bj-table-zone {
+            background: rgba(8, 24, 17, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .bj-row-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+
+        .bj-score-badge {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: #fff;
+        }
+
+        .bj-cards-container {
+            display: flex;
+            gap: 8px;
+            min-height: 76px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .bj-cards-container:last-child {
+            margin-bottom: 0;
+        }
+
+        .playing-card {
+            width: 52px;
+            height: 74px;
+            background: #ffffff;
+            color: #111827;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px 6px;
+            font-weight: bold;
+            user-select: none;
+            transition: transform 0.15s ease;
+        }
+
+        .playing-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .playing-card.red {
+            color: #dc2626;
+        }
+
+        .playing-card .card-top {
+            font-size: 0.82rem;
+            line-height: 1;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .playing-card .card-center {
+            font-size: 1.35rem;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .playing-card .card-bottom {
+            font-size: 0.75rem;
+            line-height: 1;
+            text-align: right;
+            transform: rotate(180deg);
+        }
+
+        .playing-card.hidden-card {
+            background: repeating-linear-gradient(
+                45deg,
+                #831843,
+                #831843 6px,
+                #be185d 6px,
+                #be185d 12px
+            );
+            border: 2px solid #fbcfe8;
+            color: transparent;
+        }
+
+        /* 3x3 Slot-Machine Raster */
+        .slot-grid-3x3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background: #0b1310;
+            border: 2px solid rgba(244, 114, 182, 0.45);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .slot-cell {
+            height: 62px;
+            background: linear-gradient(180deg, #1f2937 0%, #111827 50%, #1f2937 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.9rem;
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.65);
+            user-select: none;
+            transition: transform 0.14s ease, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .slot-cell.spinning {
+            animation: cellSpin 0.13s infinite alternate;
+            border-color: #f472b6;
+        }
+
+        .slot-cell.win {
+            border-color: #10b981;
+            background: linear-gradient(180deg, #064e3b 0%, #022c22 100%);
+            box-shadow: 0 0 14px rgba(16, 185, 129, 0.55);
+            transform: scale(1.04);
+        }
+
+        @keyframes cellSpin {
+            from { transform: scale(0.95); }
+            to { transform: scale(1.03); }
+        }
+
+        .slot-paytable {
+            font-size: 0.7rem;
+            color: #9ca3af;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .bj-bet-controls {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .bj-bet-controls input {
+            width: 82px;
+            padding: 7px 8px;
+            border-radius: 8px;
+            border: 1px solid #4b5563;
+            background: #12151c;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .bj-chip-btn {
+            padding: 6px 9px;
+            border-radius: 8px;
+            border: 1px solid rgba(244, 114, 182, 0.45);
+            background: rgba(236, 72, 153, 0.15);
+            color: #fbcfe8;
+            font-size: 0.78rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .bj-chip-btn:hover:not(:disabled) {
+            background: rgba(236, 72, 153, 0.32);
+        }
+
+        .bj-chip-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .bj-main-buttons {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .slot-spin-row {
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .bj-btn {
+            padding: 9px 10px;
+            border: none;
+            border-radius: 8px;
+            background: var(--secret);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.15s, transform 0.08s;
+        }
+
+        .bj-btn:hover:not(:disabled) {
+            background: #db2777;
+        }
+
+        .bj-btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .bj-btn.secondary {
+            background: #2b3548;
+        }
+
+        .bj-btn.secondary:hover:not(:disabled) {
+            background: #3b4861;
+        }
+
+        .bj-btn.auto-active {
+            background: #059669;
+            color: #fff;
+        }
+
+        .bj-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        #bj-status {
+            background: rgba(0, 0, 0, 0.35);
+            border-left: 3px solid var(--secret);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.84rem;
+            color: #f3f4f6;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+        }
+
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--green);
+            color: #111;
+            font-weight: bold;
+            padding: 10px 18px;
+            border-radius: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+
+        footer {
+            margin-top: 35px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        #secret-trigger-icon {
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="notification">Nachricht</div>
+
+    <header>
+        <h1>🍪 CookieCause</h1>
+        <p>Klicke Cookies, löse Prämien ein & spende für kranke Kinder und Wildtiere!</p>
+    </header>
+
+    <!-- Cookie-Clicker Status-Leiste -->
+    <div class="stats-bar">
+        <div class="stat-box">
+            <div class="stat-value" id="cookies-display">0</div>
+            <div class="stat-label">Cookies</div>
+        </div>
+        <div class="stat-box coins">
+            <div class="stat-value" id="coins-display">100</div>
+            <div class="stat-label">Clicker-Coins (Start: 100)</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="payouts-display">0</div>
+            <div class="stat-label">Eingelöste Kekse 📦</div>
+        </div>
+        <div class="stat-box charity">
+            <div class="stat-value" id="donated-display">0 €</div>
+            <div class="stat-label">Gespendet (Virtuell)</div>
+        </div>
+    </div>
+
+    <!-- Hauptbereich -->
+    <div class="container">
+        <!-- Linke Spalte: Klicker -->
+        <div class="card cookie-area">
+            <div id="big-cookie" title="Klick mich!">🍪</div>
+            <div class="cps-info">
+                Pro Klick: <strong id="cpc-display">1</strong> | Pro Sekunde: <strong id="cps-display">0</strong>
+            </div>
+        </div>
+
+        <!-- Rechte Spalte: Upgrades (skalierend ^1.5, linearer Preis), Payout & Spenden -->
+        <div class="card">
+            <h2>🛒 Upgrades (Wirkung ^1.5, Preis linear)</h2>
+            <div id="upgrades-list"></div>
+
+            <h2 style="margin-top: 18px;">🎁 Cookie Payout (Ab 500 Cookies)</h2>
+            <button class="btn btn-accent" id="btn-payout">
+                <span>📦 500 Cookies gegen 1 Keks-Box eintauschen</span>
+                <span>500 🍪</span>
+            </button>
+
+            <h2 style="margin-top: 18px;">💚 Fundraising: Kinder & Wildtiere</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Spende 250 Cookies = 5 € virtueller Spendenbeitrag für Hilfsprojekte.
+            </p>
+            <div class="progress-bg">
+                <div class="progress-fill" id="charity-bar"></div>
+            </div>
+            <button class="btn btn-green" id="btn-donate">
+                <span>🐾 250 Cookies für Kinder & Tiere spenden</span>
+                <span>250 🍪</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Geheimer Casino-Tab: Blackjack & 3x3 Slot Machine -->
+    <div id="secret-gambling-tab">
+        <div class="bj-header">
+            <h3>🎰 Geheimes Mini-Casino</h3>
+            <button class="bj-close-btn" title="Schließen" onclick="document.getElementById('secret-gambling-tab').style.display='none'">✖</button>
+        </div>
+
+        <div class="casino-mode-tabs">
+            <button class="mode-tab-btn active" id="tab-btn-bj">🃏 Blackjack</button>
+            <button class="mode-tab-btn" id="tab-btn-slots">🎰 3×3 Slots</button>
+        </div>
+
+        <div class="bj-bankroll-bar">
+            <span class="bj-chips-pill">Casino-Tokens: <span id="bj-balance">100</span></span>
+            <button class="bj-reset-link" id="btn-bj-reset" title="Nur aktiv, wenn du 0 Tokens hast">Pleite-Reset (100)</button>
+        </div>
+
+        <div class="bj-exchange-grid">
+            <button class="bj-exchange-btn" id="btn-bj-to-coins">
+                🔄 100 Tokens<br>→ 2.000 Clicker-Coins
+            </button>
+            <button class="bj-exchange-btn to-bj" id="btn-cookies-to-bj">
+                🍪 2.000 Cookies<br>→ 100 Tokens
+            </button>
+        </div>
+
+        <!-- BEREICH A: BLACKJACK -->
+        <div id="view-blackjack">
+            <div class="bj-table-zone">
+                <div class="bj-row-label">
+                    <span>Dealer</span>
+                    <span class="bj-score-badge" id="bj-dealer-score">0</span>
+                </div>
+                <div class="bj-cards-container" id="bj-dealer-cards"></div>
+
+                <div class="bj-row-label">
+                    <span>Du</span>
+                    <span class="bj-score-badge" id="bj-player-score">0</span>
+                </div>
+                <div class="bj-cards-container" id="bj-player-cards"></div>
+            </div>
+
+            <div class="bj-bet-controls">
+                <input type="number" id="bj-bet-input" value="10" min="1" placeholder="Einsatz">
+                <button class="bj-chip-btn" data-add="10">+10</button>
+                <button class="bj-chip-btn" data-add="50">+50</button>
+                <button class="bj-chip-btn" id="btn-bj-max">Max</button>
+            </div>
+
+            <div class="bj-main-buttons">
+                <button class="bj-btn" id="btn-bj-deal">Neue Runde</button>
+                <button class="bj-btn secondary" id="btn-bj-hit" disabled>Hit (+1)</button>
+                <button class="bj-btn secondary" id="btn-bj-stand" disabled>Stand</button>
+            </div>
+        </div>
+
+        <!-- BEREICH B: 3x3 SLOT MACHINE MIT AUTO-SPIN -->
+        <div id="view-slots" style="display: none;">
+            <div class="bj-table-zone">
+                <div class="slot-grid-3x3" id="slot-grid-3x3">
+                    <div class="slot-cell" data-idx="0">🍪</div>
+                    <div class="slot-cell" data-idx="1">7️⃣</div>
+                    <div class="slot-cell" data-idx="2">💎</div>
+                    <div class="slot-cell" data-idx="3">🍒</div>
+                    <div class="slot-cell" data-idx="4">🍪</div>
+                    <div class="slot-cell" data-idx="5">🔔</div>
+                    <div class="slot-cell" data-idx="6">💎</div>
+                    <div class="slot-cell" data-idx="7">🍒</div>
+                    <div class="slot-cell" data-idx="8">7️⃣</div>
+                </div>
+                <div class="slot-paytable">
+                    <span>💎×3 = 12x</span>
+                    <span>7️⃣×3 = 8x</span>
+                    <span>🍪×3 = 5x</span>
+                    <span>🔔×3 = 3x</span>
+                    <span>🍒×3 = 2x</span>
+                    <span>2 Linien ×1.5 | 3+ ×2</span>
+                </div>
+            </div>
+
+            <div class="bj-bet-controls">
+                <input type="number" id="slot-bet-input" value="5" min="1" placeholder="Einsatz">
+                <button class="bj-chip-btn slot-preset-btn" data-bet="2">2</button>
+                <button class="bj-chip-btn slot-preset-btn" data-bet="5">5</button>
+                <button class="bj-chip-btn slot-preset-btn" data-bet="10">10</button>
+                <button class="bj-chip-btn slot-preset-btn" data-bet="25">25</button>
+            </div>
+
+            <div class="slot-spin-row">
+                <button class="bj-btn" id="btn-slot-spin">🎰 3×3 Drehen</button>
+                <button class="bj-btn secondary" id="btn-slot-auto">🔁 Auto-Spin</button>
+            </div>
+        </div>
+
+        <div id="bj-status">3×3 Slots: Nutze Auto-Spin für automatische Runden!</div>
+    </div>
+
+    <footer>
+        <span id="secret-trigger-icon">🍪</span> CookieCause Projekt – Nur virtuelle Spielwährung, kein echtes Geld.
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. COOKIE CLICKER + SKALIERENDE UPGRADES (^1.5 WIRKUNG, LINEARER PREIS)
+        // ==========================================
+        let cookies = 0;
+        let coins = 100;
+        let payouts = 0;
+        let donatedEuro = 0;
+
+        const upgrades = [
+            { id: 'oven', icon: '👆', name: 'Ofen-Upgrade', type: 'click', level: 0, basePower: 1, baseCost: 25, costStep: 25 },
+            { id: 'baker', icon: '🤖', name: 'Auto-Bäcker', type: 'cps', level: 0, basePower: 2, baseCost: 50, costStep: 50 },
+            { id: 'tray', icon: '🍳', name: 'Profi-Backblech', type: 'click', level: 0, basePower: 4, baseCost: 150, costStep: 120 },
+            { id: 'factory', icon: '🏭', name: 'Keks-Fabrik', type: 'cps', level: 0, basePower: 8, baseCost: 300, costStep: 250 }
+        ];
+
+        function getUpgradePowerAtLevel(upg, level) {
+            if (level <= 0) return 0;
+            return Math.round(upg.basePower * Math.pow(level + 1, 1.5));
+        }
+
+        function getNextGain(upg) {
+            const currentEff = getUpgradePowerAtLevel(upg, upg.level);
+            const nextEff = getUpgradePowerAtLevel(upg, upg.level + 1);
+            return Math.max(1, nextEff - currentEff);
+        }
+
+        function getUpgradeCost(upg) {
+            return upg.baseCost + upg.level * upg.costStep;
+        }
+
+        function getTotalCookiesPerClick() {
+            let total = 1;
+            for (const upg of upgrades) {
+                if (upg.type === 'click') total += getUpgradePowerAtLevel(upg, upg.level);
+            }
+            return total;
+        }
+
+        function getTotalCookiesPerSecond() {
+            let total = 0;
+            for (const upg of upgrades) {
+                if (upg.type === 'cps') total += getUpgradePowerAtLevel(upg, upg.level);
+            }
+            return total;
+        }
+
+        const cookiesDisplay = document.getElementById('cookies-display');
+        const coinsDisplay = document.getElementById('coins-display');
+        const payoutsDisplay = document.getElementById('payouts-display');
+        const donatedDisplay = document.getElementById('donated-display');
+        const cpcDisplay = document.getElementById('cpc-display');
+        const cpsDisplay = document.getElementById('cps-display');
+        const upgradesListEl = document.getElementById('upgrades-list');
+
+        const btnPayout = document.getElementById('btn-payout');
+        const btnDonate = document.getElementById('btn-donate');
+        const charityBar = document.getElementById('charity-bar');
+        const notification = document.getElementById('notification');
+
+        function showToast(msg, color = '#10b981') {
+            notification.textContent = msg;
+            notification.style.background = color;
+            notification.style.opacity = '1';
+            setTimeout(() => { notification.style.opacity = '0'; }, 2500);
+        }
+
+        function renderUpgrades() {
+            upgradesListEl.innerHTML = '';
+            upgrades.forEach((upg, idx) => {
+                const cost = getUpgradeCost(upg);
+                const gain = getNextGain(upg);
+                const unitLabel = upg.type === 'click' ? 'pro Klick' : 'Cookies/Sek';
+                const currentContrib = getUpgradePowerAtLevel(upg, upg.level);
+
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.disabled = coins < cost;
+                btn.innerHTML = `
+                    <div class="upgrade-meta">
+                        <span class="upgrade-title">${upg.icon} ${upg.name} (Lv. ${upg.level}) → +${gain} ${unitLabel}</span>
+                        <span class="upgrade-sub">Aktuell durch Upgrade: +${currentContrib} ${unitLabel} (Preis +${upg.costStep}/Lv.)</span>
+                    </div>
+                    <span class="upgrade-cost">${cost} Coins</span>
+                `;
+
+                btn.addEventListener('click', () => {
+                    const currentCost = getUpgradeCost(upgrades[idx]);
+                    if (coins < currentCost) return;
+                    coins -= currentCost;
+                    upgrades[idx].level += 1;
+                    const newGain = getNextGain(upgrades[idx]);
+                    showToast(`${upg.name} auf Lv. ${upgrades[idx].level}! Nächster Schritt: +${newGain} ${unitLabel}`, '#38bdf8');
+                    updateClickerUI();
+                });
+
+                upgradesListEl.appendChild(btn);
+            });
+        }
+
+        function updateClickerUI() {
+            const cpc = getTotalCookiesPerClick();
+            const cps = getTotalCookiesPerSecond();
+
+            cookiesDisplay.textContent = Math.floor(cookies);
+            coinsDisplay.textContent = coins;
+            payoutsDisplay.textContent = payouts;
+            donatedDisplay.textContent = donatedEuro + ' €';
+            cpcDisplay.textContent = cpc;
+            cpsDisplay.textContent = cps;
+
+            renderUpgrades();
+
+            btnPayout.disabled = cookies < 500;
+            btnDonate.disabled = cookies < 250;
+
+            const progress = Math.min((donatedEuro / 100) * 100, 100);
+            charityBar.style.width = progress + '%';
+
+            if (typeof btnCookiesToBj !== 'undefined') {
+                btnCookiesToBj.disabled = isCasinoBusy() || cookies < 2000;
+            }
+        }
+
+        document.getElementById('big-cookie').addEventListener('click', () => {
+            cookies += getTotalCookiesPerClick();
+            updateClickerUI();
+        });
+
+        btnPayout.addEventListener('click', () => {
+            if (cookies >= 500) {
+                cookies -= 500;
+                payouts += 1;
+                coins += 30;
+                showToast('🎉 Payout erfolgreich! 1 Keks-Box eingelöst (+30 Clicker-Coins)!', '#f59e0b');
+                updateClickerUI();
+            }
+        });
+
+        btnDonate.addEventListener('click', () => {
+            if (cookies >= 250) {
+                cookies -= 250;
+                donatedEuro += 5;
+                coins += 15;
+                showToast('💚 Danke! 5 € für kranke Kinder & Wildtiere gespendet!');
+                updateClickerUI();
+            }
+        });
+
+        setInterval(() => {
+            const cps = getTotalCookiesPerSecond();
+            if (cps > 0) {
+                cookies += cps;
+                updateClickerUI();
+            }
+        }, 1000);
+
+        // ==========================================
+        // 2. GEHEIMES FREISCHALTEN
+        // ==========================================
+        const secretCode = ['c', 'o', 'o', 'k', 'i', 'e'];
+        let inputSequence = [];
+
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            inputSequence.push(e.key.toLowerCase());
+            if (inputSequence.length > secretCode.length) inputSequence.shift();
+            if (inputSequence.join('') === secretCode.join('')) {
+                unlockSecretTab();
+                inputSequence = [];
+            }
+        });
+
+        let footerClicks = 0;
+        document.getElementById('secret-trigger-icon').addEventListener('click', () => {
+            footerClicks++;
+            if (footerClicks >= 5) {
+                unlockSecretTab();
+                footerClicks = 0;
+            }
+        });
+
+        function unlockSecretTab() {
+            document.getElementById('secret-gambling-tab').style.display = 'block';
+            showToast('🤫 Geheimes Mini-Casino freigeschaltet!', '#ec4899');
+        }
+
+        // ==========================================
+        // 3. CASINO ZUSTAND (BLACKJACK & 3x3 SLOTS + AUTO-SPIN)
+        // ==========================================
+        let casinoTokens = 100;
+        let bjCurrentBet = 0;
+        let bjDeck = [];
+        let playerHand = [];
+        let dealerHand = [];
+        let bjRoundActive = false;
+        let slotSpinning = false;
+        let autoSpinEnabled = false;
+        let autoSpinTimer = null;
+
+        function isCasinoBusy() {
+            return bjRoundActive || slotSpinning || autoSpinEnabled;
+        }
+
+        const bjBalanceEl = document.getElementById('bj-balance');
+        const bjBetInput = document.getElementById('bj-bet-input');
+        const btnBjDeal = document.getElementById('btn-bj-deal');
+        const btnBjHit = document.getElementById('btn-bj-hit');
+        const btnBjStand = document.getElementById('btn-bj-stand');
+        const btnBjReset = document.getElementById('btn-bj-reset');
+        const btnBjToCoins = document.getElementById('btn-bj-to-coins');
+        const btnCookiesToBj = document.getElementById('btn-cookies-to-bj');
+        const btnBjMax = document.getElementById('btn-bj-max');
+        const bjDealerCardsEl = document.getElementById('bj-dealer-cards');
+        const bjDealerScoreEl = document.getElementById('bj-dealer-score');
+        const bjPlayerCardsEl = document.getElementById('bj-player-cards');
+        const bjPlayerScoreEl = document.getElementById('bj-player-score');
+        const bjStatusEl = document.getElementById('bj-status');
+
+        const tabBtnBj = document.getElementById('tab-btn-bj');
+        const tabBtnSlots = document.getElementById('tab-btn-slots');
+        const viewBlackjack = document.getElementById('view-blackjack');
+        const viewSlots = document.getElementById('view-slots');
+
+        const slotBetInput = document.getElementById('slot-bet-input');
+        const btnSlotSpin = document.getElementById('btn-slot-spin');
+        const btnSlotAuto = document.getElementById('btn-slot-auto');
+        const slotCellEls = Array.from(document.querySelectorAll('#slot-grid-3x3 .slot-cell'));
+
+        function stopAutoSpin(reasonText = null) {
+            autoSpinEnabled = false;
+            if (autoSpinTimer) {
+                clearTimeout(autoSpinTimer);
+                autoSpinTimer = null;
+            }
+            btnSlotAuto.textContent = '🔁 Auto-Spin';
+            btnSlotAuto.classList.remove('auto-active');
+            if (reasonText) {
+                bjStatusEl.textContent = reasonText;
+            }
+            updateCasinoUI(false);
+        }
+
+        tabBtnBj.addEventListener('click', () => {
+            if (isCasinoBusy()) return;
+            tabBtnBj.classList.add('active');
+            tabBtnSlots.classList.remove('active');
+            viewBlackjack.style.display = 'block';
+            viewSlots.style.display = 'none';
+            bjStatusEl.textContent = 'Blackjack: Setze Casino-Tokens und starte eine Runde.';
+        });
+
+        tabBtnSlots.addEventListener('click', () => {
+            if (isCasinoBusy()) return;
+            tabBtnSlots.classList.add('active');
+            tabBtnBj.classList.remove('active');
+            viewSlots.style.display = 'block';
+            viewBlackjack.style.display = 'none';
+            bjStatusEl.textContent = '3×3 Slots: Nutze Auto-Spin für automatische Runden!';
+        });
+
+        const suits = ['♠', '♥', '♦', '♣'];
+        const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+        function createDeck() {
+            const deck = [];
+            for (const s of suits) {
+                for (const r of ranks) deck.push({ rank: r, suit: s });
+            }
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            return deck;
+        }
+
+        function calcScore(hand) {
+            let sum = 0;
+            let aces = 0;
+            for (const card of hand) {
+                if (card.rank === 'A') {
+                    sum += 11;
+                    aces += 1;
+                } else if (['K', 'Q', 'J'].includes(card.rank)) {
+                    sum += 10;
+                } else {
+                    sum += parseInt(card.rank, 10);
+                }
+            }
+            while (sum > 21 && aces > 0) {
+                sum -= 10;
+                aces -= 1;
+            }
+            return sum;
+        }
+
+        function renderCardElement(card, isHidden = false) {
+            const el = document.createElement('div');
+            if (isHidden) {
+                el.className = 'playing-card hidden-card';
+                el.innerHTML = '<span>?</span>';
+                return el;
+            }
+            const isRed = card.suit === '♥' || card.suit === '♦';
+            el.className = `playing-card${isRed ? ' red' : ''}`;
+            el.innerHTML = `
+                <div class="card-top"><span>${card.rank}</span><span>${card.suit}</span></div>
+                <div class="card-center">${card.suit}</div>
+                <div class="card-bottom"><span>${card.rank}</span></div>
+            `;
+            return el;
+        }
+
+        function renderHand(containerEl, hand, hideSecond = false) {
+            containerEl.innerHTML = '';
+            hand.forEach((card, idx) => {
+                containerEl.appendChild(renderCardElement(card, hideSecond && idx === 1));
+            });
+        }
+
+        function updateCasinoUI(hideDealerSecond = false) {
+            const busy = isCasinoBusy();
+            bjBalanceEl.textContent = casinoTokens;
+
+            renderHand(bjPlayerCardsEl, playerHand, false);
+            bjPlayerScoreEl.textContent = playerHand.length ? calcScore(playerHand) : '0';
+
+            if (!dealerHand.length) {
+                bjDealerCardsEl.innerHTML = '';
+                bjDealerScoreEl.textContent = '0';
+            } else if (hideDealerSecond) {
+                renderHand(bjDealerCardsEl, dealerHand, true);
+                bjDealerScoreEl.textContent = '?';
+            } else {
+                renderHand(bjDealerCardsEl, dealerHand, false);
+                bjDealerScoreEl.textContent = calcScore(dealerHand);
+            }
+
+            tabBtnBj.disabled = busy;
+            tabBtnSlots.disabled = busy;
+
+            btnBjHit.disabled = !bjRoundActive;
+            btnBjStand.disabled = !bjRoundActive;
+            btnBjDeal.disabled = busy;
+            bjBetInput.disabled = busy;
+
+            btnSlotSpin.disabled = busy;
+            slotBetInput.disabled = busy;
+            document.querySelectorAll('.slot-preset-btn').forEach(b => b.disabled = busy);
+            btnSlotAuto.disabled = bjRoundActive || (slotSpinning && !autoSpinEnabled);
+
+            btnBjReset.disabled = busy || casinoTokens > 0;
+            btnBjToCoins.disabled = busy || casinoTokens < 100;
+            btnCookiesToBj.disabled = busy || cookies < 2000;
+        }
+
+        function endBjRound(message) {
+            bjRoundActive = false;
+            bjStatusEl.textContent = message;
+            updateCasinoUI(false);
+        }
+
+        btnBjToCoins.addEventListener('click', () => {
+            if (isCasinoBusy() || casinoTokens < 100) return;
+            casinoTokens -= 100;
+            coins += 2000;
+            bjStatusEl.textContent = '✅ 100 Tokens gegen 2.000 Clicker-Coins getauscht!';
+            showToast('🔄 +2.000 Clicker-Coins erhalten!', '#38bdf8');
+            updateCasinoUI(false);
+            updateClickerUI();
+        });
+
+        btnCookiesToBj.addEventListener('click', () => {
+            if (isCasinoBusy() || cookies < 2000) return;
+            cookies -= 2000;
+            casinoTokens += 100;
+            bjStatusEl.textContent = '✅ 2.000 Cookies gegen 100 Casino-Tokens getauscht!';
+            showToast('🍪 2.000 Cookies → +100 Casino-Tokens!', '#f59e0b');
+            updateCasinoUI(false);
+            updateClickerUI();
+        });
+
+        document.querySelectorAll('.bj-chip-btn[data-add]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (isCasinoBusy()) return;
+                const addVal = parseInt(btn.getAttribute('data-add'), 10);
+                const currentVal = parseInt(bjBetInput.value, 10) || 0;
+                bjBetInput.value = Math.min(casinoTokens, currentVal + addVal);
+            });
+        });
+
+        btnBjMax.addEventListener('click', () => {
+            if (isCasinoBusy()) return;
+            bjBetInput.value = casinoTokens > 0 ? casinoTokens : 0;
+        });
+
+        btnBjReset.addEventListener('click', () => {
+            if (isCasinoBusy() || casinoTokens > 0) return;
+            casinoTokens = 100;
+            bjStatusEl.textContent = 'Pleite-Reset: 100 Casino-Tokens gutgeschrieben.';
+            updateCasinoUI(false);
+        });
+
+        // Blackjack Logik
+        btnBjDeal.addEventListener('click', () => {
+            if (isCasinoBusy()) return;
+            const bet = parseInt(bjBetInput.value, 10);
+
+            if (isNaN(bet) || bet <= 0) {
+                bjStatusEl.textContent = 'Bitte einen gültigen Einsatz (> 0) eingeben.';
+                return;
+            }
+            if (bet > casinoTokens) {
+                bjStatusEl.textContent = 'Nicht genug Casino-Tokens!';
+                return;
+            }
+
+            casinoTokens -= bet;
+            bjCurrentBet = bet;
+            bjDeck = createDeck();
+            playerHand = [bjDeck.pop(), bjDeck.pop()];
+            dealerHand = [bjDeck.pop(), bjDeck.pop()];
+            bjRoundActive = true;
+
+            const pScore = calcScore(playerHand);
+            const dScore = calcScore(dealerHand);
+
+            if (pScore === 21 && dScore === 21) {
+                casinoTokens += bjCurrentBet;
+                endBjRound('Push! Beide haben 21. Einsatz zurückerhalten.');
+                return;
+            }
+            if (pScore === 21) {
+                const payoutChips = Math.round(bjCurrentBet * 2.5);
+                casinoTokens += payoutChips;
+                endBjRound(`Blackjack! +${payoutChips - bjCurrentBet} Tokens gewonnen.`);
+                return;
+            }
+
+            bjStatusEl.textContent = `Einsatz: ${bjCurrentBet} Tokens. Wähle Hit (+1) oder Stand.`;
+            updateCasinoUI(true);
+        });
+
+        btnBjHit.addEventListener('click', () => {
+            if (!bjRoundActive) return;
+            playerHand.push(bjDeck.pop());
+            const pScore = calcScore(playerHand);
+
+            if (pScore > 21) {
+                endBjRound(`Überkauft (${pScore})! -${bjCurrentBet} Tokens verloren.`);
+            } else if (pScore === 21) {
+                btnBjStand.click();
+            } else {
+                updateCasinoUI(true);
+            }
+        });
+
+        btnBjStand.addEventListener('click', () => {
+            if (!bjRoundActive) return;
+            while (calcScore(dealerHand) < 17) {
+                dealerHand.push(bjDeck.pop());
+            }
+
+            const pScore = calcScore(playerHand);
+            const dScore = calcScore(dealerHand);
+
+            if (dScore > 21 || pScore > dScore) {
+                casinoTokens += bjCurrentBet * 2;
+                endBjRound(`Gewonnen (${pScore} gegen ${dScore})! +${bjCurrentBet} Tokens.`);
+            } else if (pScore < dScore) {
+                endBjRound(`Dealer gewinnt (${pScore} gegen ${dScore}). -${bjCurrentBet} Tokens.`);
+            } else {
+                casinoTokens += bjCurrentBet;
+                endBjRound(`Unentschieden (${pScore}). Einsatz zurück.`);
+            }
+        });
+
+        // ==========================================
+        // 4. 3x3 SLOT MACHINE + COMBO-BONUS + AUTO-SPIN
+        // ==========================================
+        const slotSymbols = [
+            { icon: '🍒', weight: 32, mult3: 2 },
+            { icon: '🔔', weight: 26, mult3: 3 },
+            { icon: '🍪', weight: 20, mult3: 5 },
+            { icon: '7️⃣', weight: 14, mult3: 8 },
+            { icon: '💎', weight: 8,  mult3: 12 }
+        ];
+
+        const winningLines3x3 = [
+            { name: 'Reihe oben', cells: [0, 1, 2] },
+            { name: 'Reihe mitte', cells: [3, 4, 5] },
+            { name: 'Reihe unten', cells: [6, 7, 8] },
+            { name: 'Spalte links', cells: [0, 3, 6] },
+            { name: 'Spalte mitte', cells: [1, 4, 7] },
+            { name: 'Spalte rechts', cells: [2, 5, 8] },
+            { name: 'Diagonale ↘', cells: [0, 4, 8] },
+            { name: 'Diagonale ↙', cells: [2, 4, 6] }
+        ];
+
+        function pickWeightedSymbol() {
+            const totalWeight = slotSymbols.reduce((acc, s) => acc + s.weight, 0);
+            let r = Math.random() * totalWeight;
+            for (const s of slotSymbols) {
+                if (r < s.weight) return s;
+                r -= s.weight;
+            }
+            return slotSymbols[0];
+        }
+
+        document.querySelectorAll('.slot-preset-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (isCasinoBusy()) return;
+                slotBetInput.value = parseInt(btn.getAttribute('data-bet'), 10);
+            });
+        });
+
+        function startSingleSlotSpin(fromAuto = false) {
+            if (bjRoundActive || slotSpinning) return false;
+            const bet = parseInt(slotBetInput.value, 10);
+
+            if (isNaN(bet) || bet <= 0) {
+                if (fromAuto) stopAutoSpin('Auto-Spin gestoppt: Ungültiger Einsatz.');
+                else bjStatusEl.textContent = 'Bitte einen gültigen Slot-Einsatz (> 0) eingeben.';
+                return false;
+            }
+            if (bet > casinoTokens) {
+                if (fromAuto) stopAutoSpin('Auto-Spin gestoppt: Nicht genug Casino-Tokens.');
+                else bjStatusEl.textContent = 'Nicht genug Casino-Tokens für diesen Einsatz!';
+                return false;
+            }
+
+            casinoTokens -= bet;
+            slotSpinning = true;
+            slotCellEls.forEach(cell => {
+                cell.classList.remove('win');
+                cell.classList.add('spinning');
+            });
+            bjStatusEl.textContent = `${fromAuto ? '🔁 Auto-Spin' : '🎰 3×3'} dreht (Einsatz: ${bet} Tokens)...`;
+            updateCasinoUI(false);
+
+            const gridResults = Array.from({ length: 9 }, () => pickWeightedSymbol());
+
+            const spinInterval = setInterval(() => {
+                slotCellEls.forEach(cell => {
+                    if (cell.classList.contains('spinning')) {
+                        const randSym = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+                        cell.textContent = randSym.icon;
+                    }
+                });
+            }, 65);
+
+            const colStopTimes = [
+                { cols: [0], delay: 380 },
+                { cols: [1], delay: 640 },
+                { cols: [2], delay: 900 }
+            ];
+
+            colStopTimes.forEach(({ cols, delay }) => {
+                setTimeout(() => {
+                    cols.forEach(colIdx => {
+                        for (let row = 0; row < 3; row++) {
+                            const idx = row * 3 + colIdx;
+                            slotCellEls[idx].classList.remove('spinning');
+                            slotCellEls[idx].textContent = gridResults[idx].icon;
+                        }
+                    });
+
+                    if (cols[0] === 2) {
+                        clearInterval(spinInterval);
+                        finishSlot3x3Spin(bet, gridResults, fromAuto);
+                    }
+                }, delay);
+            });
+
+            return true;
+        }
+
+        btnSlotSpin.addEventListener('click', () => {
+            if (isCasinoBusy()) return;
+            startSingleSlotSpin(false);
+        });
+
+        btnSlotAuto.addEventListener('click', () => {
+            if (autoSpinEnabled) {
+                stopAutoSpin('⏹ Auto-Spin gestoppt.');
+                return;
+            }
+            if (bjRoundActive || slotSpinning) return;
+
+            const bet = parseInt(slotBetInput.value, 10);
+            if (isNaN(bet) || bet <= 0) {
+                bjStatusEl.textContent = 'Bitte zuerst einen gültigen Slot-Einsatz (> 0) wählen.';
+                return;
+            }
+            if (bet > casinoTokens) {
+                bjStatusEl.textContent = 'Nicht genug Casino-Tokens für Auto-Spin!';
+                return;
+            }
+
+            autoSpinEnabled = true;
+            btnSlotAuto.textContent = '⏹ Stopp';
+            btnSlotAuto.classList.add('auto-active');
+            startSingleSlotSpin(true);
+        });
+
+        function finishSlot3x3Spin(bet, gridResults, fromAuto) {
+            slotSpinning = false;
+            let baseWin = 0;
+            const matchedLines = [];
+
+            for (const line of winningLines3x3) {
+                const [a, b, c] = line.cells;
+                if (
+                    gridResults[a].icon === gridResults[b].icon &&
+                    gridResults[b].icon === gridResults[c].icon
+                ) {
+                    const sym = gridResults[a];
+                    const lineWin = bet * sym.mult3;
+                    baseWin += lineWin;
+                    matchedLines.push(`${line.name} (${sym.icon}×${sym.mult3})`);
+                    slotCellEls[a].classList.add('win');
+                    slotCellEls[b].classList.add('win');
+                    slotCellEls[c].classList.add('win');
+                }
+            }
+
+            if (matchedLines.length > 0) {
+                let comboMult = 1;
+                let comboLabel = '';
+                if (matchedLines.length === 2) {
+                    comboMult = 1.5;
+                    comboLabel = ' [1.5× Doppel-Combo!]';
+                } else if (matchedLines.length >= 3) {
+                    comboMult = 2;
+                    comboLabel = ' [2× Mega-Combo!]';
+                }
+
+                const finalWin = Math.round(baseWin * comboMult);
+                casinoTokens += finalWin;
+                bjStatusEl.textContent = `🎉 +${finalWin} Tokens${comboLabel} (${matchedLines.join(', ')})`;
+            } else {
+                bjStatusEl.textContent = `Keine 3er-Verbindung. -${bet} Tokens.`;
+            }
+
+            updateCasinoUI(false);
+            updateClickerUI();
+
+            if (autoSpinEnabled) {
+                const nextBet = parseInt(slotBetInput.value, 10);
+                if (isNaN(nextBet) || nextBet <= 0 || nextBet > casinoTokens) {
+                    stopAutoSpin('⏹ Auto-Spin beendet: Nicht genug Casino-Tokens.');
+                } else {
+                    autoSpinTimer = setTimeout(() => {
+                        if (autoSpinEnabled) {
+                            startSingleSlotSpin(true);
+                        }
+                    }, 450);
+                }
+            }
+        }
+
+        updateClickerUI();
+        updateCasinoUI(false);
+    </script>
+</body>
+</html>
